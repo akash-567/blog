@@ -12,7 +12,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class PostDto {
-
+	
+	private int postId;
+	
 	@NotBlank
 	@Min(5)
 	private String title;

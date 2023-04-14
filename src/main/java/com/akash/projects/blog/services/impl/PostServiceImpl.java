@@ -6,6 +6,10 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.akash.projects.blog.entities.Category;
@@ -13,6 +17,7 @@ import com.akash.projects.blog.entities.Post;
 import com.akash.projects.blog.entities.User;
 import com.akash.projects.blog.exceptions.ResourceNotFoundException;
 import com.akash.projects.blog.models.PostDto;
+import com.akash.projects.blog.models.PostResponse;
 import com.akash.projects.blog.repository.CategoryRepo;
 import com.akash.projects.blog.repository.PostRepo;
 import com.akash.projects.blog.repository.UserRepo;
@@ -52,26 +57,48 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PostDto updatePost(PostDto postDto, int postId) {
-		// TODO Auto-generated method stub
-		return null;
+		Post post = this.postRepo.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post", "post Id", postId));
+		post.setTitle(postDto.getTitle());
+		post.setContent(postDto.getContent());
+		post.setImageName(postDto.getImageName());
+//		this.postRepo.save(post);
+		return this.modelMappper.map(this.postRepo.save(post), PostDto.class);
 	}
 
 	@Override
 	public void deletePost(int postId) {
-		// TODO Auto-generated method stub
-
+		Post post = this.postRepo.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post", "post Id", postId));
+		this.postRepo.delete(post);
 	}
 
 	@Override
-	public List<Post> getAllPosts() {
-		// TODO Auto-generated method stub
-		return null;
+	public PostResponse getAllPosts(int pageNumber, int pageSize, String sortBy, String sortDir) {
+		Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+		Pageable p = PageRequest.of(pageNumber, pageSize, sort);
+		Page<Post> pagePost = this.postRepo.findAll(p);
+		List<Post> allPosts = pagePost.getContent();
+		List<PostDto> postDtos = allPosts.stream().map(post -> this.modelMappper.map(post, PostDto.class))
+				.collect(Collectors.toList());
+
+		PostResponse postResponse = new PostResponse();
+		postResponse.setContent(postDtos);
+		postResponse.setPageNumber(pagePost.getNumber());
+		postResponse.setPageSize(pagePost.getSize());
+		postResponse.setTotalElements(pagePost.getTotalElements());
+		postResponse.setTotalPages(pagePost.getTotalPages());
+		postResponse.setLastPage(pagePost.isLast());
+
+		return postResponse;
 	}
 
 	@Override
 	public PostDto getPostsById(int postId) {
-		// TODO Auto-generated method stub
-		return null;
+		Post post = this.postRepo.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post", "post Id", postId));
+
+		return this.modelMappper.map(post, PostDto.class);
 	}
 
 	@Override
@@ -84,15 +111,16 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public List<PostDto> getPostsByUser(int userId) {
-		User user = this.userRepo.findById(userId).orElseThrow(()->new ResourceNotFoundException("User", "user id", userId));
+		User user = this.userRepo.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "user id", userId));
 		List<Post> postList = this.postRepo.findByUser(user);
 		return postList.stream().map(post -> this.modelMappper.map(post, PostDto.class)).collect(Collectors.toList());
 	}
 
 	@Override
 	public List<PostDto> searchPosts(String keyword) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Post> postsList = this.postRepo.findByTitleContaining(keyword);
+		return postsList.stream().map(post -> this.modelMappper.map(post, PostDto.class)).collect(Collectors.toList());
 	}
 
 }

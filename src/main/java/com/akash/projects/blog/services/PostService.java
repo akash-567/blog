@@ -2,8 +2,8 @@ package com.akash.projects.blog.services;
 
 import java.util.List;
 
-import com.akash.projects.blog.entities.Post;
 import com.akash.projects.blog.models.PostDto;
+import com.akash.projects.blog.models.PostResponse;
 
 public interface PostService {
 
@@ -13,7 +13,7 @@ public interface PostService {
 
 	void deletePost(int postId);
 
-	List<Post> getAllPosts();
+	PostResponse getAllPosts(int pageNumber,int pageSize,String sortBy,String sortDir);
 
 	PostDto getPostsById(int postId);
 

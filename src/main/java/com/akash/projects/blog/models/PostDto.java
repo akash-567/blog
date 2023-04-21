@@ -1,6 +1,8 @@
 package com.akash.projects.blog.models;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -12,9 +14,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class PostDto {
-	
+
 	private int postId;
-	
+
 	@NotBlank
 	@Min(5)
 	private String title;
@@ -30,4 +32,6 @@ public class PostDto {
 	private CategoryDto category;
 
 	private UserDto user;
+
+	private Set<CommentDto> comments = new HashSet<>();
 }
